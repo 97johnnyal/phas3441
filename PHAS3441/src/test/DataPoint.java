@@ -44,9 +44,17 @@ public class DataPoint {
 		this.z = h;
 	}
 
+	public Color getColour() {
+		return colour;
+	}
+
+	public void setColour(Color colour) {
+		this.colour = colour;
+	}
+
 	@Override
 	public String toString() {
-		return String.format("%s;%s;%s", this.x, this.y, this.z);
+		return String.format("%s,%s,%s", this.x, this.y, this.z);
 	}
 
 
