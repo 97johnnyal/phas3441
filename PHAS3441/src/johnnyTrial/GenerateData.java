@@ -10,7 +10,7 @@ public class GenerateData {
 	public ColorScale cs = new ColorScale(1, -1, 0, 1000);
 
 	public void data() {
-		double interval = 1;
+		double interval = currentFrame.resolution;
 		WaveEquation wave = new WaveEquation(1,1);
 		ArrayList<DataFrame> frames = new ArrayList<DataFrame>();
 		for (double t = 0; t <= 10; t+= interval/10) {
@@ -24,7 +24,7 @@ public class GenerateData {
 					thesePoints.add(thisPoint);
 				}
 			}
-			DataFrame thisFrame = new DataFrame(thesePoints, t, (int) (5/interval), 1200); 
+			DataFrame thisFrame = new DataFrame(thesePoints, t, (int) (101/interval), 1200); 
 			frames.add(thisFrame);
 		}
 		

@@ -45,11 +45,11 @@ public class OilDropAnimationPanel extends JPanel implements ActionListener {
 		g.translate(width/2, height/2);
 		
 		// go through all planets and redraw them at their updated position 
-		int delta = 30000/gd.currentFrame.getResolution()/gd.currentFrame.getScreenSize();
+		int delta = gd.currentFrame.getScreenSize()/gd.currentFrame.getResolution();
 		for (DataPoint dp:gd.currentFrame.frame) {
 			g.setColor(dp.getColour());
-			int[] xpts = {dp.x*15 + delta, dp.x*15-delta, dp.x*15-delta, dp.x*15+delta};
-			int[] ypts = {dp.y*15 + delta, dp.y*15+delta, dp.y*15-delta, dp.y*15-delta};
+			int[] xpts = {(dp.x+1)*delta, (dp.x-1)*delta, (dp.x-1)*delta, (dp.x+1)*delta};
+			int[] ypts = {(dp.y+1)*delta, (dp.y+1)*delta, (dp.y-1)*delta, (dp.y-1)*delta};
 			pixel = new Polygon(xpts, ypts, 4);
 			g.fillPolygon(pixel);
 				
