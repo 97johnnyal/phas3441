@@ -4,7 +4,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-public class OilDropAnimaion {
+public class OilDropAnimation {
 	
 	/** Create and display JFrame containing animation GUI panel */
 	
