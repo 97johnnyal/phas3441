@@ -14,7 +14,7 @@ public class OilDropAnimation {
 			public void run() {
 				JFrame frame = new JFrame("Animation demo");
 				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-				frame.setSize(1500, 1500);
+				frame.setSize(1000, 1000);
 				JPanel panel = new OilDropAnimationGuiPanel();
 				frame.add(panel);
 				frame.setVisible(true);

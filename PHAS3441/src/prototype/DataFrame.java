@@ -3,22 +3,29 @@ package prototype;
 import java.util.ArrayList;
 
 public class DataFrame {
-	
+
 	@Override
 	public String toString() {
 		return String.format("[{%s};%s]\r", this.frame, this.t);
 	}
 
-	ArrayList<DataPoint> frame;
 	double t;
-	int resolution;
-	int screenSize;
+	int pixelSize;
+	int offset;
+	ArrayList<DataPoint> frame;
 
-	public DataFrame(ArrayList<DataPoint> frame, double t, int resolution, int screenSize) {
+	/** Data frame object
+	 * 
+	 * @param frame array list of dataPoints making up the frame
+	 * @param t current time
+	 * @param pixelSize size of pixel???
+	 * @param offset offset of pixel ???
+	 */
+	public DataFrame(ArrayList<DataPoint> frame, double t, int pixelSize, int offset) {
 		this.t= t;
 		this.frame = frame;
-		this.resolution = resolution;
-		this.screenSize = screenSize;
+		this.pixelSize = pixelSize;
+		this.offset = offset;
 	}
 
 	public ArrayList<DataPoint> getFrame() {
@@ -28,13 +35,9 @@ public class DataFrame {
 	public double getT() {
 		return t;
 	}
-	
-	public int getResolution() {
-		return this.resolution;
-	}
-	
-	public int getScreenSize() {
-		return this.screenSize;
+
+	public int getPixelSize() {
+		return pixelSize;
 	}
 
 	public void setFrame(WaveEquation wave) {
@@ -42,5 +45,9 @@ public class DataFrame {
 			point.setZ(this.getT(), wave);
 		}
 	}
-	
+
+	public int getOffset() {
+		return offset;
+	}
+
 }

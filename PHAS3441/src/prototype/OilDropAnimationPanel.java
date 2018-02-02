@@ -23,19 +23,17 @@ public class OilDropAnimationPanel extends JPanel implements ActionListener {
 	private Timer animationTimer;
 	public int resolution;
 	
-	// method to create an animation with the sun at the center
 	OilDropAnimationPanel(int width, int height) {
 		setPreferredSize(new Dimension(width,height));
-		this.gd.data();
 		animationTimer = new Timer(delay,this);
 		animationTimer.start();
+		this.gd.data();
 	}
+	
 	
 	
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		
-		// create a Graphics2D object to make ellipses
 		int height = getHeight();
 		int width = getWidth();
 		// Fill in background
@@ -44,14 +42,14 @@ public class OilDropAnimationPanel extends JPanel implements ActionListener {
 		// Now move origin to centre of panel
 		g.translate(width/2, height/2);
 		
-		int m = 7;
 		
-		// go through all planets and redraw them at their updated position 
-		int delta = 26000/gd.currentFrame.getResolution()/gd.currentFrame.getScreenSize();
+		// draw all pixels - to be parallelised 
+		int m = gd.currentFrame.getPixelSize();
+		int offset = gd.currentFrame.getOffset();
 		for (DataPoint dp:gd.currentFrame.frame) {
 			g.setColor(dp.getColour());
-			int[] xpts = {dp.x*m + delta, dp.x*m-delta, dp.x*m-delta, dp.x*m+delta};
-			int[] ypts = {dp.y*m + delta, dp.y*m+delta, dp.y*m-delta, dp.y*m-delta};
+			int[] xpts = {dp.x*m + offset, dp.x*m-offset, dp.x*m-offset, dp.x*m+offset};
+			int[] ypts = {dp.y*m + offset, dp.y*m+offset, dp.y*m-offset, dp.y*m-offset};
 			pixel = new Polygon(xpts, ypts, 4);
 			g.fillPolygon(pixel);
 				
