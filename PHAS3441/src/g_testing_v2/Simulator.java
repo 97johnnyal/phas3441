@@ -1,69 +1,155 @@
 package g_testing_v2;
 
 import java.awt.*;
-import java.awt.BorderLayout;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
+
 import javax.swing.*;
 import java.util.concurrent.*;
 
-//v2
-public class Simulator {
+
+public class Simulator implements ActionListener {
 	//initiating relevant objects
 	JFrame frame;
-    ArrayList<DrawPanel> allPanels = new ArrayList<DrawPanel>();
-    //ArrayList<Pixel> allPixels = new ArrayList<Pixel>();
+    DrawPanel drawPanel; 
+    ArrayList<Pixel> allPixels = new ArrayList<Pixel>();
     int framesizeX;
     int framesizeY;
     int nThreads = 8;
-    int pixelSize =4;
+    int size =2;
+    ArrayList<OilDrop> droplets = new ArrayList<OilDrop>();
+    double frequency;
+    Random rand = new Random();
     
-    //constructor
-	public Simulator(int framesizeX, int framesizeY, int nThreads, int pixelSize) {
-		this.framesizeX = framesizeX;
-		this.framesizeY = framesizeY;
-		this.nThreads = nThreads;
-		this.pixelSize = pixelSize;
-		int divider = framesizeX/(pixelSize*nThreads);
-		//for each thread
-		for(int threadNum=0; threadNum<nThreads; threadNum++) {
-			ArrayList<Pixel> threadPixels = new ArrayList<Pixel>();
-			//for all the i rows belonging to this thread
-			for (int i = threadNum*divider; i < (threadNum+1)*divider; i++) {
-				//for all j columns
-				for (int j = 0; j<framesizeY/pixelSize; j++) {
-					Pixel genPix = new Pixel(new TwoVector(i*pixelSize,j*pixelSize),i*j);
-					threadPixels.add(genPix);
-				}
-			}
-			//create DrawPanel with arrayList
-			DrawPanel threadPanel = new DrawPanel(threadPixels, pixelSize);
-			allPanels.add(threadPanel);
-		}
-	}
+    //NextPos Pixels
+    ArrayList<Pixel> nexPosPixels = new ArrayList<Pixel>();
+	
+    /** Constructor for SolarSystem object
+     * Assumes reflection boundary at pixel = 50 line
+     * @param ArrayList containing OrbitingObj objects for simulation
+     */
+    public Simulator(int framesizeX, int framesizeY,double frequency) {
+    	this.framesizeX = framesizeX;
+    	this.framesizeY = framesizeY;
+    	this.frequency = frequency;
+    	OilDrop droplet1 = new OilDrop(new TwoVector((double)(framesizeX*0.30) - 450,(double)framesizeY*0.5), 300.0, frequency,0);
+    	OilDrop droplet2 = new OilDrop(new TwoVector((double)(framesizeX*0.70)-450,(double)framesizeY*0.5), 300.0, frequency, 1);
+    	droplets.add(droplet1);
+    	droplets.add(droplet2);
+    	//generate all pixels starting from top left to bottom right
+    	for (int i =0; i < framesizeX/size; i++) {
+    		for (int j =0; j < framesizeY/size; j++) {
+    			Pixel genPix = new Pixel(new TwoVector(i*size,j*size),0);
+    			allPixels.add(genPix);
+    		}
+    	}
+    	
+    }
     
-	// Performs simulation
+    // Performs simulation
     private void Simulate() {
         frame = new JFrame("Test");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        drawPanel = new DrawPanel();
+        frame.getContentPane().add(BorderLayout.CENTER, drawPanel);
         frame.setVisible(true);
         frame.setResizable(false);
         frame.setSize(this.framesizeX,this.framesizeY);
         frame.setBackground(Color.BLACK);
-        GridLayout grid = new GridLayout(8,1);
-        frame.getContentPane().add(GridLayout(8,0), allPanels.get(0));
-    	frame.add(allPanels.get(0));
-    	frame.getContentPane().add(BorderLayout.NORTH, allPanels.get(1));
-    	frame.add(allPanels.get(1));
-    	frame.getContentPane().add(BorderLayout.CENTER, allPanels.get(2));
-    	frame.add(allPanels.get(2));
-    	frame.getContentPane().add(BorderLayout.CENTER, allPanels.get(3));
-    	frame.add(allPanels.get(3));
+        frame.add(drawPanel);
+        run();
     }
     
-    public static void main(String[] args) {
-		Simulator test = new Simulator(1000,1000,4,4);
+    private void run() {
+    	//initiate time counter
+    	double time =0;
+    	System.out.println(droplets.get(1).currPos +""+droplets.get(1).prevPos);
+    	droplets.get(0).updateParam(new TwoVector(10,0), time);
+		droplets.get(1).updateParam(new TwoVector(-10,0), time);
+		
+    	while (true) {
+    		System.out.println(droplets.get(1).currPos +""+droplets.get(1).prevPos);
+    		
+    		// pause time to wait for repaint to finish
+    		 try{
+				 Thread.sleep(20);
+			 } catch (Exception exc){}
+    		
+    		// determine calculation start time
+    		long start = System.currentTimeMillis();
+    		
+    		PixelAmplitude pixelUpdater = new PixelAmplitude(this.nThreads,this.droplets,time,this.framesizeX,0,this.framesizeY,0,this.size);
+    		this.allPixels = pixelUpdater.UpdatedPixelList();
+    		
+    		//increase Time Step
+    		//time = time + 0.01;
+    		
+    		//repaint to reset screen
+			 try{
+				 Thread.sleep(0);
+			 } catch (Exception exc){}
+			frame.repaint();
+			
+			// Det change in velocity = g * gradient * 0.01 / (2piOmega)
+			TwoVector dVel = OilDrop.gradient(droplets, droplets.get(0).currPos).multiply(100000 * 0.1 / (2*Math.PI*this.frequency));
+			//System.out.println(dVel);
+			droplets.get(0).updateParam(dVel, time);
+			droplets.get(1).updateParam(dVel.multiply(-1.0), time);
+			System.out.println(droplets.get(1).vel);
+			
+			//Update droplet details
+    		for (OilDrop d : this.droplets) {
+    			d.updateParam(new TwoVector(0,0), time);
+    		}
+			
+			// determine end time and time taken
+			long end = System.currentTimeMillis();
+			long timeElapsed1 = end - start;
+			System.out.println(timeElapsed1+ "ms");
+			//System.out.println("Grad at" + (droplets.get(0).currPos) + " = " + OilDrop.gradient(droplets, droplets.get(0).currPos));
+    	}
+    }
+    
+    /** DrawPanel class that extends JPanel
+	 * creates graphics to be displayed in simulation
+	 * @author geach
+	 * @version 1.1 (27/12/2017)
+	 */
+	class DrawPanel extends JPanel {
+		public void paintComponent(Graphics g) {
+			//Creating graphics for each pixel
+			for (Pixel p : allPixels) {
+				if (p.position.getX()>50) {
+					g.setColor(new Color(p.colorIntensityR,0,p.colorIntensityB));
+					g.fillRect((int)p.position.getX(), (int)p.position.getY(), size+10, size);
+				}
+				
+			}
+			
+			g.setColor(new Color(0,255,0));
+			g.fillRect(46, 0, 4, 1000);
+			
+			//creating point for next pixel
+			for (Pixel p : nexPosPixels) {
+				g.setColor(new Color(255,0,0));
+				g.fillRect((int)p.position.getX(), (int)p.position.getY(), 1, 1);
+			}
+		}
+		
+	}
+    
+	@Override //for buttons
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+	public static void main(String[] args) {
+		Simulator test = new Simulator(1000,1000,20);
 		test.Simulate();
 	}
+
+	
 }

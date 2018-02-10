@@ -132,6 +132,31 @@ public class TwoVector {
 		return equalsTo(this, B);
 	}
 
+	// Determines the scalar product of two vectors
+	public static double scalarProduct(TwoVector v1, TwoVector v2) {
+		double scalarProd = (v1.x * v2.x) + (v1.y *v2.y);
+		return scalarProd;
+	}
+	
+	// Determines the angle between vector v1 and vector v2 in radians
+	public static double angle(TwoVector v1, TwoVector v2) throws Exception {
+		// Checks if v1 is a zero vector
+		if (v1.magnitude()==0) {
+			throw new Exception("First vector entered is a zero vector. Cannot find angle.");
+		}
+		// Checks if v2 is a zero vector
+		else if (v2.magnitude()==0) {
+			throw new Exception("Second vector entered is a zero vector. Cannot find angle.");
+		}
+		
+		else {
+		
+			double ang = Math.acos(scalarProduct(v1,v2) / (v1.magnitude()*v2.magnitude()));
+			return ang;
+		}
+	}
+	
+	
 	@Override
 	public String toString() {
 		return "TwoVector [x=" + x + ", y=" + y + "]";
@@ -151,6 +176,11 @@ public class TwoVector {
 
 	public void setY(double y) {
 		this.y = y;
+	}
+
+	public static double angle(TwoVector displacement) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 	
 }

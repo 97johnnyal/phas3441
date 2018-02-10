@@ -10,16 +10,16 @@ import java.util.concurrent.Future;
 
 public class NextPosGenerator{
 	// initiating variables
-	int precision;
+	double precision;
 	int nThreads;
 	Random rand = new Random();
 	OilDrop droplet;
 	double time;
 	
 	//constructor
-	public NextPosGenerator(int precision, int nThreads, OilDrop droplet, double time) {
+	public NextPosGenerator(double precision, int nThreads, OilDrop droplet, double time) {
 		this.precision = precision;
-		this.nThreads = nThreads;
+		this.nThreads = 200;
 		this.droplet = droplet;
 		this.time = time;
 	}
@@ -29,11 +29,14 @@ public class NextPosGenerator{
 		List<Future<SimPoints>> futures = new ArrayList<Future<SimPoints>>();
 		ArrayList<SimPoints> shortListPoints = new ArrayList<SimPoints>();
 		
+		double dropXPos = this.droplet.currentPosition.getX();
+		double dropYPos = this.droplet.currentPosition.getY();
+		
 		//creates task per thread
 		for (int iThread = 0; iThread < this.nThreads; ++iThread) {
-			SubGenerator task = new SubGenerator(iThread*1000/this.nThreads, 
-													(iThread+1)*1000/this.nThreads, 
-													0,1000);
+			SubGenerator task = new SubGenerator(((dropXPos-1000)+(iThread*2000/this.nThreads)), 
+												 ((dropXPos-1000)+((iThread+1)*2000/this.nThreads)), 
+												 (dropYPos-1000),(dropYPos+1000));
 			Future<SimPoints> future = threadPool.submit(task);
 			futures.add(future);
 		}
@@ -96,6 +99,7 @@ public class NextPosGenerator{
 			//generate arraylist of points to be simulated
 			while(i<rangeXUpper) {
 				double j = this.rangeYLower;
+				System.out.println(i);
 				while(j<rangeYUpper) {
 					SimPoints simPoint = new SimPoints(i,j,droplet.pdAtVector(new TwoVector(i,j), time));
 					points.add(simPoint);

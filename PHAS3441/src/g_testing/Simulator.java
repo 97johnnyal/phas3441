@@ -17,7 +17,7 @@ public class Simulator implements ActionListener {
     int framesizeX;
     int framesizeY;
     int nThreads = 8;
-    int size =2;
+    int size =4;
     OilDrop droplet1;
     
     //NextPos Pixels
@@ -58,11 +58,15 @@ public class Simulator implements ActionListener {
     	//initiate time counter
     	double time =0;
     	while (true) {
+
     		// pause time to wait for repaint to finish
     		 try{
-				 Thread.sleep(1);
+				 Thread.sleep(45);
 			 } catch (Exception exc){}
-    		 
+    		
+    		// determine calculation start time
+    		long start = System.currentTimeMillis();
+    		
     		ExecutorService threadPool = Executors.newFixedThreadPool(this.nThreads);
     		List<Future<ArrayList<Pixel>>> futures = new ArrayList<Future<ArrayList<Pixel>>>();
     		//initiate new arraylist to hold all animated pixels
@@ -102,17 +106,34 @@ public class Simulator implements ActionListener {
     		mostLikely.colorIntensity=255;*/
     		
     		// determines next poisiton
-    		NextPosGenerator nextPos = new NextPosGenerator(1,this.nThreads, this.droplet1,time);
+    		NextPosGenerator nextPos = new NextPosGenerator(0.5,this.nThreads, this.droplet1,time);
     		//System.out.println(nextPos.generate());
-    		nexPosPixels.add(new Pixel(nextPos.generate(), 0));
+    		TwoVector nextPosition = nextPos.generate();
+    		
+    		//Create pixel for next position
+    		nexPosPixels.add(new Pixel(nextPosition, 0));
+    		
+    		
+    		if (nextPosition.getX()<this.framesizeX && nextPosition.getX() > 0 &&
+    				nextPosition.getY()< this.framesizeY && nextPosition.getY() >0) {
+    			//this.droplet1.updateDet(nextPosition);
+    		}
+    		else {
+    			//this.droplet1.reset();
+    		}
     		
     		//increase Time Step
-    		//time = time + 0.001;
+    		//time = time + 0.01;
     		//repaint to reset screen
 			 try{
 				 Thread.sleep(0);
 			 } catch (Exception exc){}
 			frame.repaint();
+			
+			// determine end time and time taken
+			long end = System.currentTimeMillis();
+			long timeElapsed1 = end - start;
+			System.out.println(timeElapsed1+ "");
     	}
     }
     
@@ -123,11 +144,11 @@ public class Simulator implements ActionListener {
 	 */
 	class DrawPanel extends JPanel {
 		public void paintComponent(Graphics g) {
-			/*//Creating graphics for each pixel
+			//Creating graphics for each pixel
 			for (Pixel p : allPixels) {
 				g.setColor(new Color(p.colorIntensity,p.colorIntensity,p.colorIntensity));
 				g.fillRect((int)p.position.getX(), (int)p.position.getY(), size, size);
-			}*/
+			}
 			
 			//creating point for next pixel
 			for (Pixel p : nexPosPixels) {
