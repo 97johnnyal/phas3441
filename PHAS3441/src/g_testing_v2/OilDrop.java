@@ -15,6 +15,7 @@ public class OilDrop {
 	double frequency; // angular frequency in rad s-1
 	double time = 0;
 	double phase = 0; // phase between 0 to 1, where 0 = 0rad, 1 = 2pi
+	double decay = 1;
 	
 	//Constructor
 	public OilDrop(TwoVector currPos, Double waveSpeed, double frequency,double phase) {
@@ -62,7 +63,7 @@ public class OilDrop {
 								- (Math.pow(gamma/this.waveSpeed, 2)*this.frequency*this.vel.magnitude()*this.displacement.magnitude()))
 								* bessel.value(this.frequency*rPrimePrime/this.waveSpeed);
 		
-		return amplitude;
+		return amplitude * this.decay;
 	}
 	
 	//calculate the gradient at a given postion (pos)
@@ -71,7 +72,7 @@ public class OilDrop {
 		double xLow = 0;
 		double yUp =0;
 		double yLow =0;
-		double acc = 0.000001;
+		double acc = 0.00000001;
 		
 		for (OilDrop drop : droplet) {
 			xUp = xUp + drop.strengthAtPt(pos.add(new TwoVector(acc,0)));
@@ -83,6 +84,22 @@ public class OilDrop {
 		double xGrad = (xUp - xLow) / (acc*2);
 		double yGrad = (yUp - yLow) / (acc*2);
 		return new TwoVector(xGrad,yGrad);
+	}
+	
+	//returns mirror drop on plane specified
+	public OilDrop mirrorDrop(double mirrorXCoord) {
+		TwoVector dropPos = new TwoVector(mirrorXCoord-this.currPos.getX(),this.currPos.getY());
+		OilDrop mirrorDrop = new OilDrop(dropPos, this.waveSpeed, this.frequency,1.0);
+		mirrorDrop.vel = this.vel.multiply(-1);
+		mirrorDrop.prevPos = dropPos.subtract(this.prevPos);
+		mirrorDrop.displacement = mirrorDrop.currPos.subtract(mirrorDrop.prevPos);
+		mirrorDrop.gamma = 1/(Math.sqrt(1-Math.pow(this.vel.magnitude()/waveSpeed, 2)));
+		mirrorDrop.time = time + (Math.PI/frequency);
+		return mirrorDrop;
+	}
+	
+	public void decayUpdate(double decayRate) {
+		this.decay = this.decay*decayRate;
 	}
 	
 }

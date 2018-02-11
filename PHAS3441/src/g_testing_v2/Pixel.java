@@ -18,11 +18,11 @@ public class Pixel {
 		this.position = position;
 		this.amplitude = amplitude;
 		if (amplitude > 0) {
-			this.colorIntensityR = (int) (Math.abs(amplitude)*0.5 * 255);
+			this.colorIntensityR = (int) (Math.abs(amplitude) * 255);
 			this.colorIntensityB = 0;
 		}
 		else {
-			this.colorIntensityB = (int) (Math.abs(amplitude)*0.5 * 255);
+			this.colorIntensityB = (int) (Math.abs(amplitude) * 255);
 			this.colorIntensityR = 0;
 		}
 		

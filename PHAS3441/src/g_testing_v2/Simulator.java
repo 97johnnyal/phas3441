@@ -18,8 +18,9 @@ public class Simulator implements ActionListener {
     int framesizeY;
     int nThreads = 8;
     int size =2;
-    ArrayList<OilDrop> droplets = new ArrayList<OilDrop>();
+    ArrayList<OilDrop> residualDrops = new ArrayList<OilDrop>();
     double frequency;
+    OilDrop ogDrop;
     Random rand = new Random();
     
     //NextPos Pixels
@@ -33,10 +34,7 @@ public class Simulator implements ActionListener {
     	this.framesizeX = framesizeX;
     	this.framesizeY = framesizeY;
     	this.frequency = frequency;
-    	OilDrop droplet1 = new OilDrop(new TwoVector((double)(framesizeX*0.30) - 450,(double)framesizeY*0.5), 300.0, frequency,0);
-    	OilDrop droplet2 = new OilDrop(new TwoVector((double)(framesizeX*0.70)-450,(double)framesizeY*0.5), 300.0, frequency, 1);
-    	droplets.add(droplet1);
-    	droplets.add(droplet2);
+    	ogDrop = new OilDrop(new TwoVector((double)(framesizeX*0.55) - 450,(double)framesizeY*0.5), 300.0, frequency,0);
     	//generate all pixels starting from top left to bottom right
     	for (int i =0; i < framesizeX/size; i++) {
     		for (int j =0; j < framesizeY/size; j++) {
@@ -64,12 +62,13 @@ public class Simulator implements ActionListener {
     private void run() {
     	//initiate time counter
     	double time =0;
-    	System.out.println(droplets.get(1).currPos +""+droplets.get(1).prevPos);
-    	droplets.get(0).updateParam(new TwoVector(10,0), time);
-		droplets.get(1).updateParam(new TwoVector(-10,0), time);
-		
+    	System.out.println(ogDrop.currPos +""+ogDrop.prevPos);
+    	ogDrop.updateParam(new TwoVector(0,0), time);
+    	residualDrops.add(ogDrop);
+    	residualDrops.add(ogDrop.mirrorDrop(100));
+    	
     	while (true) {
-    		System.out.println(droplets.get(1).currPos +""+droplets.get(1).prevPos);
+    		//System.out.println(ogDrop.currPos +""+ogDrop.prevPos);
     		
     		// pause time to wait for repaint to finish
     		 try{
@@ -79,7 +78,7 @@ public class Simulator implements ActionListener {
     		// determine calculation start time
     		long start = System.currentTimeMillis();
     		
-    		PixelAmplitude pixelUpdater = new PixelAmplitude(this.nThreads,this.droplets,time,this.framesizeX,0,this.framesizeY,0,this.size);
+    		PixelAmplitude pixelUpdater = new PixelAmplitude(this.nThreads,this.residualDrops,time,this.framesizeX,0,this.framesizeY,0,this.size);
     		this.allPixels = pixelUpdater.UpdatedPixelList();
     		
     		//increase Time Step
@@ -92,21 +91,26 @@ public class Simulator implements ActionListener {
 			frame.repaint();
 			
 			// Det change in velocity = g * gradient * 0.01 / (2piOmega)
-			TwoVector dVel = OilDrop.gradient(droplets, droplets.get(0).currPos).multiply(100000 * 0.1 / (2*Math.PI*this.frequency));
-			//System.out.println(dVel);
-			droplets.get(0).updateParam(dVel, time);
-			droplets.get(1).updateParam(dVel.multiply(-1.0), time);
-			System.out.println(droplets.get(1).vel);
+			TwoVector dVel = OilDrop.gradient(this.residualDrops, ogDrop.currPos).multiply(100000 * 0.1 / (2*Math.PI*this.frequency));
+			System.out.println(ogDrop.vel);
+			ogDrop.updateParam(dVel, time);
 			
-			//Update droplet details
-    		for (OilDrop d : this.droplets) {
-    			d.updateParam(new TwoVector(0,0), time);
-    		}
+			for (OilDrop o : residualDrops){
+				o.decayUpdate(0.7);
+			}
+			
+			
+			residualDrops.add(ogDrop);
+	    	residualDrops.add(ogDrop.mirrorDrop(100));
 			
 			// determine end time and time taken
 			long end = System.currentTimeMillis();
 			long timeElapsed1 = end - start;
-			System.out.println(timeElapsed1+ "ms");
+			System.out.println(timeElapsed1+ "ms, no. of residualDrops" + residualDrops.size());
+			if(timeElapsed1 > 1000) {
+				residualDrops.remove(0);
+				residualDrops.remove(0);
+			}
 			//System.out.println("Grad at" + (droplets.get(0).currPos) + " = " + OilDrop.gradient(droplets, droplets.get(0).currPos));
     	}
     }
@@ -118,10 +122,17 @@ public class Simulator implements ActionListener {
 	 */
 	class DrawPanel extends JPanel {
 		public void paintComponent(Graphics g) {
+			//guess peak in amplitude
+			/*double ampAtCurrPos =0;
+			for (OilDrop drop : residualDrops) {
+				ampAtCurrPos = ampAtCurrPos + drop.strengthAtPt(ogDrop.currPos);
+			}
+			double resSum = Math.abs(ampAtCurrPos)*3;*/
+			double resSum =2;
 			//Creating graphics for each pixel
 			for (Pixel p : allPixels) {
 				if (p.position.getX()>50) {
-					g.setColor(new Color(p.colorIntensityR,0,p.colorIntensityB));
+					g.setColor(new Color((int)(p.colorIntensityR/resSum),0,(int)(p.colorIntensityB/resSum)));
 					g.fillRect((int)p.position.getX(), (int)p.position.getY(), size+10, size);
 				}
 				
@@ -129,6 +140,7 @@ public class Simulator implements ActionListener {
 			
 			g.setColor(new Color(0,255,0));
 			g.fillRect(46, 0, 4, 1000);
+			g.fillRect((int)ogDrop.currPos.getX(), (int)ogDrop.currPos.getY(), 4, 4);
 			
 			//creating point for next pixel
 			for (Pixel p : nexPosPixels) {
@@ -136,7 +148,6 @@ public class Simulator implements ActionListener {
 				g.fillRect((int)p.position.getX(), (int)p.position.getY(), 1, 1);
 			}
 		}
-		
 	}
     
 	@Override //for buttons
