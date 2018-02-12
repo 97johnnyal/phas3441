@@ -2,6 +2,11 @@ package g_testing_v2;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 
@@ -34,7 +39,7 @@ public class Simulator implements ActionListener {
     	this.framesizeX = framesizeX;
     	this.framesizeY = framesizeY;
     	this.frequency = frequency;
-    	ogDrop = new OilDrop(new TwoVector((double)(framesizeX*0.55) - 450,(double)framesizeY*0.5), 300.0, frequency,0);
+    	ogDrop = new OilDrop(new TwoVector((double)(framesizeX*1) - 450,(double)framesizeY*0.5), 1350.0, frequency,0);
     	//generate all pixels starting from top left to bottom right
     	for (int i =0; i < framesizeX/size; i++) {
     		for (int j =0; j < framesizeY/size; j++) {
@@ -63,11 +68,33 @@ public class Simulator implements ActionListener {
     	//initiate time counter
     	double time =0;
     	System.out.println(ogDrop.currPos +""+ogDrop.prevPos);
-    	ogDrop.updateParam(new TwoVector(0,0), time);
+    	ogDrop.updateParam(new TwoVector(-45,0), time);
     	residualDrops.add(ogDrop);
     	residualDrops.add(ogDrop.mirrorDrop(100));
     	
-    	while (true) {
+    	//initiate file output data
+    	File outputfile = new File(System.getProperty("user.home") + File.separator +"test1" +".txt");
+    	FileWriter fw ;
+		BufferedWriter b = null ;
+		PrintWriter pw = null ;
+    	
+    	// initiates writers
+		try {
+			fw = new FileWriter(outputfile);
+			b = new BufferedWriter(fw);
+			pw = new PrintWriter(b);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+    	
+    	// limit for calculation
+    	double maxX = 20000;
+    	int calculationRound = 0;
+    	
+    	// determine simulation start time
+		long startSim = System.currentTimeMillis();
+    	
+    	while (ogDrop.currPos.getX()<maxX) {
     		//System.out.println(ogDrop.currPos +""+ogDrop.prevPos);
     		
     		// pause time to wait for repaint to finish
@@ -78,8 +105,8 @@ public class Simulator implements ActionListener {
     		// determine calculation start time
     		long start = System.currentTimeMillis();
     		
-    		PixelAmplitude pixelUpdater = new PixelAmplitude(this.nThreads,this.residualDrops,time,this.framesizeX,0,this.framesizeY,0,this.size);
-    		this.allPixels = pixelUpdater.UpdatedPixelList();
+//    		PixelAmplitude pixelUpdater = new PixelAmplitude(this.nThreads,this.residualDrops,time,this.framesizeX,0,this.framesizeY,0,this.size);
+//    		this.allPixels = pixelUpdater.UpdatedPixelList();
     		
     		//increase Time Step
     		//time = time + 0.01;
@@ -91,12 +118,15 @@ public class Simulator implements ActionListener {
 			frame.repaint();
 			
 			// Det change in velocity = g * gradient * 0.01 / (2piOmega)
-			TwoVector dVel = OilDrop.gradient(this.residualDrops, ogDrop.currPos).multiply(100000 * 0.1 / (2*Math.PI*this.frequency));
-			System.out.println(ogDrop.vel);
+			TwoVector dVel = OilDrop.gradient(this.residualDrops, ogDrop.currPos).multiply(100 * 0.1 / (2*Math.PI*this.frequency));
+			
+			//print to data file
+			pw.println(calculationRound+"    "+ogDrop.vel+"    "+ogDrop.currPos+"    "+ this.residualDrops.size());
+			calculationRound++;
 			ogDrop.updateParam(dVel, time);
 			
 			for (OilDrop o : residualDrops){
-				o.decayUpdate(0.7);
+				o.decayUpdate(1);
 			}
 			
 			
@@ -106,13 +136,26 @@ public class Simulator implements ActionListener {
 			// determine end time and time taken
 			long end = System.currentTimeMillis();
 			long timeElapsed1 = end - start;
-			System.out.println(timeElapsed1+ "ms, no. of residualDrops" + residualDrops.size());
-			if(timeElapsed1 > 1000) {
+			
+			//System.out.println(timeElapsed1+ "ms, no. of residualDrops" + residualDrops.size());
+			if(residualDrops.size() > 30000) {
 				residualDrops.remove(0);
 				residualDrops.remove(0);
 			}
 			//System.out.println("Grad at" + (droplets.get(0).currPos) + " = " + OilDrop.gradient(droplets, droplets.get(0).currPos));
     	}
+    	
+    	try {
+			b.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	// determine end time and time taken
+		long endSim = System.currentTimeMillis();
+		long timeElapsed2 = endSim - startSim;
+    	
+    	System.out.println("DONE, simulation time = " + timeElapsed2 + "ms" );
     }
     
     /** DrawPanel class that extends JPanel
@@ -128,7 +171,8 @@ public class Simulator implements ActionListener {
 				ampAtCurrPos = ampAtCurrPos + drop.strengthAtPt(ogDrop.currPos);
 			}
 			double resSum = Math.abs(ampAtCurrPos)*3;*/
-			double resSum =2;
+			
+			/*double resSum =2;
 			//Creating graphics for each pixel
 			for (Pixel p : allPixels) {
 				if (p.position.getX()>50) {
@@ -136,7 +180,7 @@ public class Simulator implements ActionListener {
 					g.fillRect((int)p.position.getX(), (int)p.position.getY(), size+10, size);
 				}
 				
-			}
+			}*/
 			
 			g.setColor(new Color(0,255,0));
 			g.fillRect(46, 0, 4, 1000);
@@ -158,7 +202,7 @@ public class Simulator implements ActionListener {
 	
 	
 	public static void main(String[] args) {
-		Simulator test = new Simulator(1000,1000,20);
+		Simulator test = new Simulator(1000,1000,80);
 		test.Simulate();
 	}
 

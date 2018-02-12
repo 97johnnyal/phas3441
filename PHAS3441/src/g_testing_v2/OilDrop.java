@@ -72,7 +72,7 @@ public class OilDrop {
 		double xLow = 0;
 		double yUp =0;
 		double yLow =0;
-		double acc = 0.00000001;
+		double acc = 0.000000000001;
 		
 		for (OilDrop drop : droplet) {
 			xUp = xUp + drop.strengthAtPt(pos.add(new TwoVector(acc,0)));

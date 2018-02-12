@@ -159,7 +159,7 @@ public class TwoVector {
 	
 	@Override
 	public String toString() {
-		return "TwoVector [x=" + x + ", y=" + y + "]";
+		return x + "	" + y ;
 	}
 
 	public double getX() {
