@@ -3,15 +3,12 @@ package johnnyTrial;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Polygon;
-import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 
-import javax.swing.Timer;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class OilDropAnimationPanel extends JPanel implements ActionListener {
 

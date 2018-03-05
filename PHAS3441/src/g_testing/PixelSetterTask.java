@@ -1,6 +1,7 @@
 package g_testing;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 public class PixelSetterTask implements Callable<ArrayList<Pixel>> {

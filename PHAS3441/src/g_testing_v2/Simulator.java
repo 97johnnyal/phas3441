@@ -1,17 +1,20 @@
 package g_testing_v2;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
 
-import javax.swing.*;
-import java.util.concurrent.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 
 public class Simulator implements ActionListener {

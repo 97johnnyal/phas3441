@@ -147,9 +147,9 @@ public class SimulationDataCollector {
     }
     
 	public static void main(String[] args) {
-		double xVel = 100;
+		double xVel = 15;
 		SimulationDataCollector simulator;
-		while (xVel < 101) {
+		while (xVel < 16) {
 			simulator = new SimulationDataCollector(new TwoVector(0,0), 
 													new TwoVector(xVel,0), 
 													1350, 80);

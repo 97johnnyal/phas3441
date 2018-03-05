@@ -1,6 +1,5 @@
 package DemoSolarSystem;
 
-import java.lang.Math;
 import java.awt.Color;
 
 public class Planet {
