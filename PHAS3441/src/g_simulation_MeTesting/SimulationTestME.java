@@ -1,16 +1,11 @@
 package g_simulation_MeTesting;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 
 //No PIXELS
 public class SimulationTestME {
 	// initiate simulator properties
-	ArrayList<OilDrop> droplets = new ArrayList<OilDrop>();
+	OilDrop droplet;
 	ArrayList<Waveform> waveField = new ArrayList<Waveform>();
 	
 	//initiate timestep counter n
@@ -21,66 +16,60 @@ public class SimulationTestME {
 	
 	
 	//Constructor
-	public SimulationTestME(ArrayList<OilDrop> droplets) {
-		this.droplets = droplets;
+	public SimulationTestME(OilDrop droplet) {
+		this.droplet = droplet;
 		
 		//Creates new field (for 300 static fields)
     	while (n<300) {
-    		for (int i = 0; i < droplets.size(); i++) {
-    			OilDrop o = droplets.get(i);
-    			waveField.add(new Waveform(o,n));
-    		}
+    		waveField.add(new Waveform(this.droplet,n));
     		n = n+1;
     	}
 	}
 	
 	//Simulation run outputs data file for particle position 
-	public void runSimulation() {
-
-    	//Collect position data as a text file
-    	//print particle location to file //initiate file output data
-    	File outputfileParticle = new File("D:"+ File.separator +"Frames" + File.separator +"Particle Data" 
-    										+Double.toString(droplets.get(0).Me)+".csv");
-    	FileWriter fwParticle ;
-		BufferedWriter bParticle = null ;
-		PrintWriter pwParticle = null ;
+	public DataObject runSimulation() {
 		
-    	// initiates writers
-		try {
-			fwParticle = new FileWriter(outputfileParticle);
-			bParticle = new BufferedWriter(fwParticle);
-			pwParticle = new PrintWriter(bParticle);
-		} catch (Exception e) {
-			System.out.println(e);
-		}
-    	
-		pwParticle.println("#n,#posx,#posy,#velx,#vely,#time");
+		// change velocity to pertubation velocity
+		this.droplet.velocity = new TwoVector (this.perturbVel, 0);
 		
-		//adds pertubation after 300th waveform
-		for(OilDrop o : droplets) {
-			o.velocity = new TwoVector (this.perturbVel, 0);
-		}
+		//constant velocity checker counter
+		boolean steadyStateReached = false;
+		int steadyStateCounter = 0;
+		DataObject steadyStateData = new DataObject(new TwoVector (0,0),0);
 		
 		//performs simulation with timestep T_F
-		while (n<500) {
+		while (n<10000 && steadyStateReached == false) {
 			//determines time
-			double time = n*droplets.get(0).T_F;
+			double time = n*this.droplet.T_F;
 			
-			//updates all droplets and assumes the interact with the field at the given time
-			for (OilDrop o : droplets) {
-				//calculates gradient and using that the change in velocity due to interaction with the gradient of the particle
-	    		TwoVector gradient = Waveform.fieldGradient(waveField, o.currentPos, time);
-	    		TwoVector dVel = gradient.multiply( - o.T_F*0.01*o.F/o.mass_droplet);
-	    		o.update(dVel);
-			}
-			
-			//Creates new field
-			for (int i = 0; i < droplets.size(); i++) {
-				OilDrop o = droplets.get(i);
-				waveField.add(new Waveform(o,n));
-				pwParticle.println(n+ "," +o.currentPos + "," +o.velocity + ","+ time);
-			}
-			
+			//calculates gradient and using that the change in velocity due to interaction with the gradient of the particle
+    		TwoVector gradient = Waveform.fieldGradient(waveField, this.droplet.currentPos, time);
+    		TwoVector dVel = gradient.multiply( - this.droplet.T_F*0.01*this.droplet.F/this.droplet.mass_droplet);
+    		this.droplet.update(dVel);
+    		
+    		if(dVel.getX() == 0 && Math.abs(this.droplet.currentPos.getX())> (2*Math.PI/this.droplet.K_F)) {
+    			if (steadyStateCounter == 0) {
+    				steadyStateData.steadyVel = this.droplet.velocity;
+        			steadyStateData.time = time;
+    			}
+    			else if(steadyStateCounter == 40) {
+    				steadyStateReached = true;
+    				steadyStateData.steadyStateReached = true;
+    			}
+    			steadyStateCounter ++;
+    		}
+    		
+    		//resets steady state checker
+    		else {
+    			steadyStateData.steadyVel = new TwoVector (0,0);
+    			steadyStateData.time = 0;
+    			steadyStateCounter = 0;
+    			steadyStateReached = false;
+    		}
+    		
+    		//adds wave due to that impact
+    		waveField.add(new Waveform(this.droplet,n));
+    		
 			// removes any waveform from 200T_F s ago.
 			if(waveField.size()>300) {
 				waveField.remove(0);
@@ -90,14 +79,13 @@ public class SimulationTestME {
 			n= n+1;
 		}
 		
-		try {
-			bParticle.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (steadyStateCounter < 20){
+			steadyStateData.steadyVel = new TwoVector (0,0);
+			steadyStateData.time = 0;
+			steadyStateCounter = 0;
 		}
-	
-	
+		
+		return steadyStateData;
 	}
 	
 }
