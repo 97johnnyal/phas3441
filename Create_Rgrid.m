@@ -1,16 +1,16 @@
 function [ R_grid ] = Create_Rgrid( grid_step,grid_size,point_source_coordinate )
-%Creates a 3D array of the absolute distance (R value) from a point
+%Creates a 2D array of the absolute distance (R value) from a point
 %   Takes the following inputs:
 %
 %   grid_step(Scalar) - Resolution of simulation in arbitray units
 %   
-%   grid_size(3x1 vector) - determines total volume to be simulated. 
+%   grid_size(2x1 vector) - determines total volume to be simulated. 
 %   Input should be a the maxium of the simulation in each dimension in
-%   x,y,z order and in the same units as grid step. A value of n simulates
+%   x,y order and in the same units as grid step. A value of n simulates
 %   from -n to n along that dimension
 %   
-%   point_source_coordinate(3x1 vector) - The Orign of the pulse given as 3 vector
-%   where each element is the corresponding x,y,z coordinate of the pulse in units of grid step 
+%   point_source_coordinate(2x1 vector) - The Orign of the pulse given as 3 vector
+%   where each element is the corresponding x,y coordinate of the pulse in units of grid step 
 %   
 %   Returns the following outputs:
 %
@@ -32,7 +32,7 @@ function [ R_grid ] = Create_Rgrid( grid_step,grid_size,point_source_coordinate 
 
 [x_s,y_s] = deal(point_source_coordinate(1),point_source_coordinate(2));
 
-% Creates 3 1D vectors
+% Creates 2 1D vectors
 xVar = [-grid_size:grid_step:grid_size];
 yVar = [-grid_size:grid_step:grid_size];
 
